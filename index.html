@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portal Akademik Pendidikan Ekonomi - UNIAS</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;700;900&display=swap" rel="stylesheet">
+    
+    <style>
+        body { font-family: 'Montserrat', sans-serif; }
+        [x-cloak] { display: none !important; }
+        /* Navigasi: Diganti ke Merah Gelap */
+        .nav-link { @apply flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 hover:bg-red-900/50 cursor-pointer; }
+        .nav-active { @apply bg-red-900 text-yellow-300 shadow-inner font-bold border-l-4 border-yellow-400; }
+        
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .loader-circle { border: 4px solid rgba(255, 255, 255, 0.3); border-top-color: #facc15; border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; }
+        .loading-overlay { backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
+
+        /* Animasi Background Bergerak: Gradasi Merah Gelap */
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        .animated-bg {
+            background: linear-gradient(-45deg, #7f1d1d, #991b1b, #450a0a, #7f1d1d);
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
+        }
+    </style>
+</head>
+
+<body class="bg-gray-50 font-sans text-gray-800" x-data="mainApp">
+
+    <div x-show="loading" class="fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-red-950/60 loading-overlay">
+        <div class="loader-circle mb-4"></div>
+        <p class="text-white font-bold animate-pulse">Memuat...</p>
+    </div>
+
+    <section x-show="activeTab === 'login'" 
+             class="min-h-screen flex items-center justify-center animated-bg p-4"
+             x-transition:enter="transition ease-out duration-500"
+             x-transition:enter-start="opacity-0 scale-90"
+             x-transition:enter-end="opacity-100 scale-100">
+        
+        <div class="bg-white/95 backdrop-blur-sm p-8 md:p-10 rounded-[2.5rem] shadow-[0_20px_50px_rgba(0,0,0,0.5)] w-full max-w-sm text-center border border-white/20 relative overflow-hidden">
+            
+            <div class="absolute -top-10 -left-10 w-32 h-32 bg-yellow-400/20 rounded-full blur-3xl"></div>
+            
+            <div class="relative group">
+                <img src="https://i.ibb.co.com/pv9Nyhq3/Logo-Universitas-Nias.png" 
+                     class="mx-auto mb-6 h-32 md:h-36 object-contain transition-transform duration-500 group-hover:scale-110 drop-shadow-xl">
+            </div>
+
+            <h1 class="text-4xl font-black text-red-950 tracking-tighter mb-1">PIA</h1>
+            <div class="space-y-1 mb-8">
+                <p class="text-[10px] uppercase font-black text-red-900/60 tracking-[0.3em] leading-tight">Portal Informasi Akademik</p>
+                <p class="text-[10px] uppercase font-bold text-yellow-600 tracking-[0.1em]">Pendidikan Ekonomi</p>
+            </div>
+            
+            <div class="space-y-5 text-left">
+                <div>
+                    <label class="text-[9px] font-bold text-gray-400 ml-2 mb-1 block uppercase">NIM / NIDN</label>
+                    <input type="text" id="nimInput" placeholder="Masukkan NIM/NIDN" 
+                        class="w-full p-4 bg-gray-50 border-2 border-gray-100 rounded-2xl outline-none focus:border-red-700 focus:bg-white transition-all duration-300 shadow-sm font-medium">
+                </div>
+                
+                <div>
+                    <label class="text-[9px] font-bold text-gray-400 ml-2 mb-1 block uppercase">Password</label>
+                    <div class="relative group">
+                        <input :type="showPass ? 'text' : 'password'" id="passInput" @keydown.enter="login()" placeholder="••••••••" 
+                            class="w-full p-4 pr-12 bg-gray-50 border-2 border-gray-100 rounded-2xl outline-none focus:border-red-700 focus:bg-white transition-all duration-300 shadow-sm font-medium">
+                        
+                        <button @click="showPass = !showPass" type="button" 
+                                class="absolute inset-y-0 right-0 pr-4 flex items-center text-gray-400 hover:text-red-700 transition-colors">
+                            <svg x-show="showPass" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                            </svg>
+                            <svg x-show="!showPass" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.542-7a10.024 10.024 0 014.132-5.411m0 0L21 21m-2.102-2.102L12 12m-2.898-2.898L3 3" />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+
+                <button @click="login()" class="w-full bg-gradient-to-r from-red-800 to-red-950 text-white p-4 rounded-2xl font-black text-sm tracking-widest hover:from-red-700 hover:to-red-900 shadow-[0_10px_20px_rgba(127,29,29,0.4)] transition-all duration-300 active:scale-95 uppercase">
+                    MASUK SEKARANG
+                </button>
+                
+                <a href="https://wa.me/6285274071530" target="_blank" class="text-[11px] text-gray-500 hover:text-red-800 transition-colors font-semibold flex items-center justify-center gap-1 mt-2">
+                    <span class="opacity-50 text-xs">Lupa Password?</span> 
+                    <span class="text-red-700 underline text-xs decoration-dotted">Hubungi Admin</span>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <div x-show="activeTab !== 'login'" class="flex h-screen overflow-hidden relative" x-cloak>
+        
+        <aside :class="showSidebar ? 'translate-x-0' : '-translate-x-full md:translate-x-0'" 
+               class="fixed md:relative w-72 h-full bg-red-950 text-white flex flex-col shadow-2xl z-50 transition-transform duration-300">
+            
+            <div class="p-6 border-b border-white/20 flex items-center gap-3">
+                <img src="https://i.ibb.co.com/pv9Nyhq3/Logo-Universitas-Nias.png" class="w-10 h-10 bg-white rounded-full p-1">
+                <div>
+                    <h1 class="font-black text-[10px] text-yellow-400 uppercase leading-tight">Pendidikan Ekonomi</h1>
+                    <p class="text-[8px] text-red-200">UNIVERSITAS NIAS</p>
+                </div>
+                <button @click="showSidebar = false" class="md:hidden ml-auto">✕</button>
+            </div>
+
+            <nav class="flex-1 p-4 space-y-1 overflow-y-auto custom-scrollbar text-sm">
+                <div @click="activeTab = 'dashboard'; showSidebar = false" :class="activeTab === 'dashboard' ? 'nav-active' : ''" class="nav-link">🏠 Dashboard</div>
+                <div @click="activeTab = 'visimisi'; showSidebar = false" :class="activeTab === 'visimisi' ? 'nav-active' : ''" class="nav-link">📜 Visi & Misi</div>
+                <div @click="activeTab = 'dosen'; showSidebar = false" :class="activeTab === 'dosen' ? 'nav-active' : ''" class="nav-link">👨‍🏫 Data Dosen</div>
+                                
+                <div class="pt-4 pb-2 px-4 text-[10px] font-black text-yellow-400 uppercase tracking-widest border-b border-white/10 mb-2">Mahasiswa</div>
+                <div class="grid grid-cols-2 gap-1 px-2">
+                    <template x-for="sem in [2, 4, 6, 8, 10, 12, 14]">
+                        <div @click="activeTab = 'mhs' + sem; showSidebar = false" 
+                             :class="activeTab === 'mhs' + sem ? 'bg-red-800 text-yellow-300' : 'bg-red-900/50'"
+                             class="text-[10px] p-2 rounded-lg text-center cursor-pointer hover:bg-red-700 transition" 
+                             x-text="'Sem ' + sem"></div>
+                    </template>
+                </div>
+
+                <div @click="activeTab = 'galeri'; showSidebar = false" :class="activeTab === 'galeri' ? 'nav-active' : ''" class="nav-link mt-4">📸 Galeri</div>
+                <div @click="activeTab = 'setting'; showSidebar = false" :class="activeTab === 'setting' ? 'nav-active' : ''" class="nav-link">⚙️ Ganti Password</div>
+                
+                <div @click="localStorage.removeItem('userLogin'); location.reload()" class="nav-link mt-8 bg-red-800/40 text-red-200 hover:bg-red-600">🚪 Logout</div>
+
+                <div class="mt-auto pt-4 border-t border-white/10 px-2 mb-2">
+                    <div class="bg-red-900/30 p-2 rounded-xl flex items-center gap-2 border border-white/5 relative group">
+                        <div @click="uploadFoto()" class="relative w-8 h-8 rounded-lg overflow-hidden flex-shrink-0 cursor-pointer border border-yellow-400/50 hover:ring-2 hover:ring-yellow-400 transition">
+                            <template x-if="mahasiswaLogin.foto">
+                                <img :src="mahasiswaLogin.foto" class="w-full h-full object-cover">
+                            </template>
+                            <template x-if="!mahasiswaLogin.foto">
+                                <div class="w-full h-full bg-yellow-400 flex items-center justify-center text-red-900">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                    </svg>
+                                </div>
+                            </template>
+                        </div>
+                        <div class="min-w-0 flex-1">
+                            <p class="text-[10px] font-black text-white leading-tight break-words uppercase" x-text="mahasiswaLogin.nama"></p>
+                            <div class="flex items-center justify-between mt-0.5">
+                                <p class="text-[8px] text-yellow-300 font-mono" x-text="mahasiswaLogin.nim"></p>
+                                <button @click="hapusFoto()" x-show="mahasiswaLogin.foto" class="text-[7px] text-red-400 hover:text-red-200 uppercase font-bold">Hapus</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </nav>
+        </aside>
+
+        <main class="flex-1 overflow-y-auto relative bg-gray-50">
+            <div class="md:hidden flex items-center justify-between bg-red-950 text-white p-4 sticky top-0 z-40 shadow-md">
+                <div class="flex items-center gap-2">
+                    <img src="https://i.ibb.co.com/pv9Nyhq3/Logo-Universitas-Nias.png" class="w-8 h-8 bg-white rounded-full p-1">
+                    <span class="font-bold text-xs uppercase">PIA Pendidikan Ekonomi</span>
+                </div>
+                <button @click="showSidebar = true" class="p-2 bg-red-900 rounded-lg">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" /></svg>
+                </button>
+            </div>
+
+            <div class="p-4 md:p-10 text-left">
+                <section x-show="activeTab === 'dashboard'" x-cloak x-transition class="space-y-6">
+                    <div class="bg-white p-5 md:p-6 rounded-3xl shadow-sm border border-red-50 flex items-center gap-4 md:gap-6">
+                        <div class="flex-shrink-0 w-14 h-14 md:w-20 md:h-20 bg-red-50 rounded-2xl flex items-center justify-center text-red-900 shadow-inner">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 md:h-12 md:w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                            </svg>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <h2 class="text-lg md:text-3xl font-black text-red-950 leading-tight">
+                                Halo, <span x-text="mahasiswaLogin.nama" class="text-red-700"></span>!
+                            </h2>
+                            <p class="text-[11px] md:text-base text-gray-600 font-medium mt-1">Selamat datang di <span class="text-red-900 font-bold">PIA Pendidikan Ekonomi</span></p>
+                        </div>
+                    </div>
+                    
+                    <div class="rounded-3xl overflow-hidden shadow-xl border-4 border-white">
+                        <img src="https://i.postimg.cc/MGYtKG0P/Depan.png" class="w-full aspect-video object-cover">
+                        <div class="bg-red-900 p-3 text-center text-white text-[10px] md:text-sm italic uppercase font-bold">"Membangun Masa Depan Melalui Pendidikan Ekonomi yang Unggul"</div>
+                    </div>
+
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-6 text-center">
+                        <template x-for="feat in [{t:'Akreditasi B', i:'🏆'}, {t:'Kurikulum OBE', i:'📚'}, {t:'Guru Profesional', i:'👨‍🏫'}, {t:'Mindful Learning', i:'💡'}]">
+                            <div class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 flex flex-col items-center">
+                                <span class="text-2xl mb-2" x-text="feat.i"></span>
+                                <h3 class="font-bold text-[10px] md:text-xs text-red-950" x-text="feat.t"></h3>
+                            </div>
+                        </template>
+                    </div>
+                </section>
+
+                <section x-show="activeTab === 'visimisi'" x-cloak x-transition class="space-y-4">
+                    <h2 class="text-xl font-bold text-red-900 border-l-4 border-yellow-500 pl-3">Visi & Misi</h2>
+                    <div class="grid md:grid-cols-2 gap-4">
+                        <div class="bg-red-950 text-white p-6 rounded-2xl shadow-lg">
+                            <h3 class="text-yellow-400 font-bold uppercase text-xs mb-3">Visi</h3>
+                            <p class="text-xs italic leading-relaxed">"Menjadi Program Studi Pendidikan Ekonomi yang Unggul dan Inovatif Dalam Menghasilkan Pendidik Ekonomi Proferisonal, Berkarakter, Adaptif Terhadap Perkembangan Teknologi, Serta Berdaya Saing Global Pada Tahun 2030."</p>
+                        </div>
+                        <div class="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm">
+                            <h3 class="text-red-900 font-bold uppercase text-xs mb-3">Misi</h3>
+                            <ul class="text-[11px] space-y-2 list-disc pl-4 text-gray-600 italic">
+                                <li>Menyelenggarakan Pendidikan Berbasis OBE.</li>
+                                <li>Mengembangkan Penelitian Inovatif.</li>
+                                <li>Pengabdian Literasi Keuangan.</li>
+                                <li>Integrasi Teknologi Digital.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </section>
+
+                <section x-show="activeTab === 'dosen'" x-cloak x-transition>
+                    <h2 class="text-xl font-bold text-red-900 mb-6 uppercase tracking-tighter">Dosen Pendidikan Ekonomi</h2>
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <template x-for="d in dosen">
+                            <div class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 text-center">
+                                <img :src="d.foto" @click="selectedFoto = d.foto; openModal = true" class="w-16 h-16 mx-auto rounded-full object-cover mb-3 shadow-md border-2 border-red-50 cursor-zoom-in">
+                                <h3 class="font-bold text-[10px] text-red-950 leading-tight h-8 flex items-center justify-center" x-text="d.nama"></h3>
+                                <p class="text-[8px] bg-red-50 text-red-700 mt-2 py-1 rounded-md font-bold uppercase" x-text="d.bidang"></p>
+                            </div>
+                        </template>
+                    </div>
+                </section>
+
+               <section x-show="activeTab === 'mhs8'" x-cloak x-transition class="space-y-6" x-data="{ tabMhs: 'kartu' }">
+
+                    <div class="flex gap-2">
+                        <button @click="tabMhs = 'kartu'" :class="tabMhs === 'kartu' ? 'bg-red-900 text-white' : 'bg-white text-red-900'" class="px-4 py-2 rounded-xl text-xs font-bold border border-red-900 transition">Lihat Kartu</button>
+                        <button x-show="isAuthorized" @click="tabMhs = 'tabel'" :class="tabMhs === 'tabel' ? 'bg-red-900 text-white' : 'bg-white text-red-900'" class="px-4 py-2 rounded-xl text-xs font-bold border border-red-900 transition">Lihat Tabel Skripsi</button>
+                    </div>
+
+                    <div x-show="tabMhs === 'kartu'" class="space-y-6">
+                        <div class="flex flex-col md:flex-row justify-between gap-4">
+                            <h2 class="text-xl font-bold text-red-900">Mahasiswa Semester 8</h2>
+                            <input type="text" x-model="search" placeholder="Cari Nama/NIM..." class="p-2 border rounded-xl text-sm w-full md:w-64 outline-none focus:ring-2 focus:ring-red-700">
+                        </div>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                            <template x-for="mhs in mahasiswa.filter(m => m.semester == 8 && (m.nama.toLowerCase().includes(search.toLowerCase()) || m.nim.toString().includes(search)))">
+                                <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden flex flex-col hover:shadow-md transition">
+                                    <div class="p-3 flex gap-3 border-b border-gray-50">
+                                        <img :src="mhs.foto" @click="selectedFoto = mhs.foto; openModal = true" class="w-16 h-20 object-cover rounded-lg bg-gray-50 cursor-zoom-in">
+                                        <div class="flex-1">
+                                            <span class="text-[8px] font-bold px-2 py-0.5 rounded-full" 
+                                                :class="mhs.status === 'Seminar' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'" x-text="mhs.status"></span>
+                                            <h4 class="font-bold text-red-950 text-xs mt-1 uppercase truncate w-32" x-text="mhs.nama"></h4>
+                                            <p class="text-[9px] text-gray-400 font-mono" x-text="mhs.nim"></p>
+                                        </div>
+                                    </div>
+                                    <div class="p-3 bg-red-50/30">
+                                        <p class="text-[10px] text-gray-700 italic leading-snug truncate" x-text="'“' + mhs.judul + '”'"></p>
+                                    </div>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+
+                    <div x-show="tabMhs === 'tabel' && isAuthorized" 
+                        x-cloak 
+                        x-transition 
+                        class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 mt-4">
+                        
+                        <h2 class="text-xl font-bold text-red-900 mb-4">Data Skripsi Lengkap</h2>
+                        
+                        <div class="overflow-x-auto w-full">
+                            <table class="w-full text-[10px] md:text-xs text-left border-collapse whitespace-nowrap">
+                                <thead>
+                                    <tr class="text-gray-500 border-b uppercase">
+                                        <th class="p-3">NIM</th>
+                                        <th class="p-3">Nama</th>
+                                        <th class="p-3">Judul</th>
+                                        <th class="p-3">Seminar</th>
+                                        <th class="p-3">Tanggal</th>
+                                        <th class="p-3">Sidang</th>
+                                        <th class="p-3">Tanggal</th>
+                                        <th class="p-3">Nilai</th>
+                                        <th class="p-3">Pembimbing</th>
+                                        <th class="p-3">Penguji 1</th>
+                                        <th class="p-3">Penguji 2</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-gray-100">
+                                    <template x-for="s in skripsi" :key="s.nim">
+                                        <tr class="hover:bg-red-50 transition">
+                                            <td class="p-3 font-mono text-gray-600" x-text="s.nim"></td>
+                                            <td class="p-3 font-bold text-red-950" x-text="s.nama"></td>
+                                            <td class="p-3 italic max-w-[150px] truncate" x-text="s.judul"></td>
+                                            <td class="p-3 font-bold" :class="s.seminar === 'Sudah' ? 'text-green-600' : 'text-red-600'" x-text="s.seminar"></td>
+                                            <td class="p-3 text-gray-600" x-text="s.tanggalSeminar"></td>
+                                            <td class="p-3 font-bold" :class="s.sidang === 'Sudah' ? 'text-green-600' : 'text-red-600'" x-text="s.sidang"></td>
+                                            <td class="p-3 text-gray-600" x-text="s.tanggalSidang"></td>
+                                            <td class="p-3 font-semibold text-gray-800" x-text="s.nilai"></td>
+                                            <td class="p-3 text-gray-600" x-text="s.pembimbing"></td>
+                                            <td class="p-3 text-gray-600" x-text="s.penguji1"></td>
+                                            <td class="p-3 text-gray-600" x-text="s.penguji2"></td>
+                                        </tr>
+                                    </template>
+                                </tbody>
+                            </table>
+                        </div>
+                        <p class="text-[9px] text-gray-400 mt-2">*Geser ke samping untuk melihat detail</p>
+                    </div>
+                </section>
+
+                <template x-for="sem in [2, 4, 6, 10, 12, 14]">
+                    <section x-show="activeTab === 'mhs' + sem" x-cloak x-transition>
+                        <h2 class="text-xl font-bold text-red-900 mb-4" x-text="'Mahasiswa Semester ' + sem"></h2>
+                        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-x-auto">
+                            <table class="w-full text-left text-[11px] md:text-sm">
+                                <thead class="bg-gray-50 text-gray-400 font-bold uppercase">
+                                    <tr><th class="p-4">NIM</th><th class="p-4">Nama</th><th class="p-4">Status</th></tr>
+                                </thead>
+                                <tbody class="divide-y divide-gray-100">
+                                    <template x-for="mhs in mahasiswa.filter(m => m.semester == sem)">
+                                        <tr class="hover:bg-red-50/50">
+                                            <td class="p-4 font-mono" x-text="mhs.nim"></td>
+                                            <td class="p-4 font-bold uppercase" x-text="mhs.nama"></td>
+                                            <td class="p-4"><span class="text-green-600 font-bold">● Aktif</span></td>
+                                        </tr>
+                                    </template>
+                                </tbody>
+                            </table>
+                        </div>
+                    </section>
+                </template>
+
+                <section x-show="activeTab === 'galeri'" x-cloak x-transition class="space-y-6">
+                    <h2 class="text-xl font-bold text-red-900 border-l-4 border-yellow-500 pl-3 uppercase">Galeri Kegiatan</h2>
+                    <div class="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-6">
+                        <template x-for="(foto, index) in galeri" :key="index">
+                            <div class="group relative bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100 hover:shadow-md transition duration-300">
+                                <div class="aspect-square overflow-hidden bg-gray-100">
+                                    <img :src="foto.url" @click="selectedFoto = foto.url; openModal = true" class="w-full h-full object-cover cursor-zoom-in group-hover:scale-110 transition duration-500">
+                                </div>
+                                <div class="p-3 bg-white">
+                                    <p class="text-[9px] md:text-xs font-bold text-gray-700 truncate uppercase" x-text="foto.ket"></p>
+                                </div>
+                            </div>
+                        </template>
+                    </div>
+                </section>
+
+                <section x-show="activeTab === 'setting'" x-cloak x-transition class="max-w-sm mx-auto">
+                    <div class="bg-white p-6 rounded-3xl shadow-xl border border-red-100 space-y-4">
+                        <h2 class="font-bold text-red-900 flex items-center gap-2 mb-4">🔐 Keamanan Akun</h2>
+                        <div>
+                            <label class="text-[9px] font-bold text-gray-400 block mb-1 uppercase">Password Lama</label>
+                            <div class="relative">
+                                <input :type="showOldPass ? 'text' : 'password'" id="oldPass" class="w-full p-3 pr-12 border rounded-xl text-sm outline-none focus:ring-2 focus:ring-red-700 bg-gray-50">
+                                <button @click="showOldPass = !showOldPass" class="absolute inset-y-0 right-0 px-3 text-gray-400">
+                                    <span x-text="showOldPass ? '🙈' : '👁️'"></span>
+                                </button>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="text-[9px] font-bold text-gray-400 block mb-1 uppercase">Password Baru</label>
+                            <div class="relative">
+                                <input :type="showNewPass ? 'text' : 'password'" id="newPass" class="w-full p-3 pr-12 border rounded-xl text-sm outline-none focus:ring-2 focus:ring-red-700 bg-gray-50">
+                                <button @click="showNewPass = !showNewPass" class="absolute inset-y-0 right-0 px-3 text-gray-400">
+                                    <span x-text="showNewPass ? '🙈' : '👁️'"></span>
+                                </button>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="text-[9px] font-bold text-gray-400 block mb-1 uppercase">Konfirmasi Password Baru</label>
+                            <div class="relative">
+                                <input :type="showConfirmPass ? 'text' : 'password'" id="confirmPass" class="w-full p-3 pr-12 border rounded-xl text-sm outline-none focus:ring-2 focus:ring-red-700 bg-gray-50">
+                                <button @click="showConfirmPass = !showConfirmPass" class="absolute inset-y-0 right-0 px-3 text-gray-400">
+                                    <span x-text="showConfirmPass ? '🙈' : '👁️'"></span>
+                                </button>
+                            </div>
+                        </div>
+                        <button @click="updatePassword()" class="w-full bg-red-900 text-white p-3 rounded-xl font-bold shadow-lg hover:bg-red-950 transition mt-2">Simpan Perubahan</button>
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <div x-show="openModal" x-transition.opacity class="fixed inset-0 z-[10000] flex items-center justify-center bg-black/90 p-4" style="display: none;" @click.self="openModal = false">
+        <button @click="openModal = false" class="absolute top-5 right-5 text-white text-2xl font-black">✕</button>
+        <img :src="selectedFoto" class="max-w-full max-h-[85vh] rounded-lg shadow-2xl border-4 border-white/20">
+    </div>
+
+   <script>
+    document.addEventListener('alpine:init', () => {
+        Alpine.data('mainApp', () => ({
+            // --- Variabel Lama ---
+            activeTab: 'login',
+            showPass: false,
+            showSidebar: false,
+            showOldPass: false,
+            showNewPass: false, 
+            showConfirmPass: false,
+            search: '',
+            loading: false,
+            openModal: false,
+            selectedFoto: null,
+            galeri: [ 
+                { url: 'https://i.postimg.cc/MGYtKG0P/Depan.png', ket: 'Gedung Rektorat UNIAS' },
+                { url: 'https://i.postimg.cc/MGYtKG0P/Depan.png', ket: 'Ruang Kelas Pendidikan Ekonomi' },
+                { url: 'https://i.postimg.cc/MGYtKG0P/Depan.png', ket: 'Kegiatan Seminar Mahasiswa' },
+                { url: 'https://i.postimg.cc/MGYtKG0P/Depan.png', ket: 'Lab Komputer PIA' },
+                { url: 'https://i.postimg.cc/MGYtKG0P/Depan.png', ket: 'Foto Bersama Dosen' },
+                { url: 'https://i.postimg.cc/MGYtKG0P/Depan.png', ket: 'Fasilitas Perpustakaan' }
+            ],
+            
+            // --- Variabel Keamanan & Data Baru ---
+            mahasiswaLogin: { nim: '', nama: '', foto: null, role: '', semester: 0 },
+            mahasiswa: [],
+            dosen: [],
+            skripsi: [],
+            apiUrl: 'https://script.google.com/macros/s/AKfycbwyG5u85Gj-vV7Kxj-Fwlm1pesaVgodE2cqA3ThJCZtlNhpVmDXt2zAbOEjtyJ_X7Q5SA/exec',
+
+            // --- Helper Baru ---
+            get isAuthorized() {
+                return this.mahasiswaLogin.role === 'dosen' || this.mahasiswaLogin.semester == 8;
+            },
+
+            // --- Fungsi Init (Gabungan) ---
+            init() {
+                let savedUser = localStorage.getItem('userLogin');
+                if (savedUser) {
+                    let user = JSON.parse(savedUser);
+                    this.mahasiswaLogin = user; // Langsung masukkan object user
+                    this.activeTab = 'dashboard';
+                }
+        
+                const url = `${this.apiUrl}?role=${this.mahasiswaLogin.role}&semester=${this.mahasiswaLogin.semester}`;
+
+                fetch(url)
+                    .then(res => res.json())
+                    .then(data => {
+                        this.mahasiswa = data.mahasiswa;
+                        this.dosen = data.dosen;
+                        // Hanya isi jika berhak
+                        if (this.isAuthorized) {
+                            this.skripsi = data.skripsi;
+                        }
+                    });
+            },
+    
+            // --- Fungsi Login (Update untuk Semester) ---
+            async login() {
+                let nim = document.getElementById('nimInput').value;
+                let pass = document.getElementById('passInput').value;
+                if(!nim || !pass) return Swal.fire('Opps!', 'Isi NIM dan Password!', 'warning');
+
+                this.loading = true;
+                try {
+                   let roleTerdeteksi = nim.length > 10 ? 'mahasiswa' : 'dosen';
+    
+                    let res = await fetch(this.apiUrl, {
+                        method: 'POST',
+                        // Tambahkan loginRole di sini agar server tahu harus cari di sheet mana
+                        body: new URLSearchParams({ 
+                            nim: nim, 
+                            pass: pass, 
+                            loginRole: roleTerdeteksi 
+                        })
+                    });
+                    let result = await res.json();
+                    
+                    if(result.status) {
+                        this.mahasiswaLogin.nim = nim; 
+                        this.mahasiswaLogin.nama = result.data.nama;
+                        this.mahasiswaLogin.foto = result.data.foto;
+                        this.mahasiswaLogin.role = nim.length > 10 ? 'mahasiswa' : 'dosen';
+                        this.mahasiswaLogin.semester = result.data.semester;
+
+                        // Penting: Pastikan data semester didapat dari server saat login
+                        this.mahasiswaLogin.semester = result.data.semester || 0; 
+                        
+                        this.activeTab = 'dashboard';
+                        localStorage.setItem('userLogin', JSON.stringify(this.mahasiswaLogin));
+
+                        const url = `${this.apiUrl}?role=${this.mahasiswaLogin.role}&semester=${this.mahasiswaLogin.semester}`;
+                        fetch(url).then(res => res.json()).then(data => this.skripsi = data.skripsi);
+
+                    } else {
+                        Swal.fire({ icon: 'error', title: 'LOGIN GAGAL!', text: 'NIM/NIDN atau Password salah!' });
+                    }
+                } catch(e) {
+                    Swal.fire('Error', 'Cek Koneksi Internet.', 'error');
+                } finally { this.loading = false; }
+            },
+
+            async updatePassword() {
+                let oldP = document.getElementById('oldPass').value;
+                let newP = document.getElementById('newPass').value;
+                let confirmP = document.getElementById('confirmPass').value;
+
+                if(!oldP || !newP) return Swal.fire('Opps!', 'Kolom wajib diisi!', 'warning');
+                if(newP !== confirmP) return Swal.fire('Error', 'Konfirmasi password tidak cocok!', 'error');
+
+                this.loading = true;
+                try {
+                    let formData = new URLSearchParams();
+                    formData.append('action', 'changePassword');
+                    formData.append('nim', this.mahasiswaLogin.nim);
+                    formData.append('oldPass', oldP);
+                    formData.append('newPass', newP);
+
+                    let res = await fetch(this.apiUrl, { method: 'POST', body: formData });
+                    let result = await res.json();
+                    
+                    if(result.status) {
+                        Swal.fire('Berhasil!', result.message, 'success');
+                        this.activeTab = 'dashboard';
+                    } else {
+                        Swal.fire('Gagal!', result.message, 'error');
+                    }
+                } catch(e) { Swal.fire('Error', 'Kesalahan sistem', 'error'); }
+                finally { this.loading = false; }
+            },
+    
+            async uploadFoto() {
+                const { value: file } = await Swal.fire({
+                    title: 'Pilih Foto Profil',
+                    input: 'file',
+                    inputAttributes: { 'accept': 'image/*', 'aria-label': 'Unggah foto profil' }
+                });
+
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = async (e) => {
+                        this.loading = true;
+                        try {
+                            let formData = new URLSearchParams();
+                            formData.append('action', 'updateFoto');
+                            formData.append('nim', this.mahasiswaLogin.nim);
+                            formData.append('fotoData', e.target.result);
+
+                            let res = await fetch(this.apiUrl, { method: 'POST', body: formData });
+                            let result = await res.json();
+
+                            if (result.status) {
+                                this.mahasiswaLogin.foto = e.target.result;
+                                localStorage.setItem('userLogin', JSON.stringify(this.mahasiswaLogin));
+                                Swal.fire('Berhasil!', 'Foto profil diperbarui.', 'success');
+                            }
+                        } catch (err) {
+                            Swal.fire('Error', 'Gagal unggah foto.', 'error');
+                        } finally { this.loading = false; }
+                    };
+                    reader.readAsDataURL(file);
+                }
+            },
+
+            async hapusFoto() {
+                Swal.fire({
+                    title: 'Hapus Foto?',
+                    text: "Foto akan dikembalikan ke ikon standar.",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonText: 'Ya, Hapus!'
+                }).then(async (result) => {
+                    if (result.isConfirmed) {
+                        this.loading = true;
+                        try {
+                            let formData = new URLSearchParams();
+                            formData.append('action', 'updateFoto');
+                            formData.append('nim', this.mahasiswaLogin.nim);
+                            formData.append('fotoData', ''); 
+
+                            await fetch(this.apiUrl, { method: 'POST', body: formData });
+                            this.mahasiswaLogin.foto = null;
+                            localStorage.setItem('userLogin', JSON.stringify(this.mahasiswaLogin));
+                            Swal.fire('Terhapus!', 'Foto profil telah dihapus.', 'success');
+                        } catch (e) { Swal.fire('Error', 'Gagal menghapus.', 'error'); }
+                        finally { this.loading = false; }
+                    }
+                });
+            }
+        }))
+    })
+    </script>
+</body>
+</html>
