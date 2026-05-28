@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://pe-eko-unias-id.github.io/PENDIDIKAN_EKONOMI-UNIAS/sitemap.xml
